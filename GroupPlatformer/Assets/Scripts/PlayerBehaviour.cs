@@ -25,7 +25,17 @@ public class PlayerBehaviour : MonoBehaviour
         public string SIDEWAYS_AXIS = "Horizontal";
         public string JUMP_AXIS = "Jump";
         public string TURN_AXIS = "Mouse X";
+        public string SHOOT_AXIS = "FIRE 1";
     }
+    
+    [SerializeField]
+    private GameObject dartPrefab;
+    private enum WeaponStatus{
+        Unarmed,
+        Ready,
+        Reloading
+    }
+    private WeaponStatus weaponStatus;
 
     public MoveSettings moveSettings;
     public InputSettings inputSettings;
@@ -33,7 +43,7 @@ public class PlayerBehaviour : MonoBehaviour
     private Rigidbody playerRigidbody;
     private Vector3 velocity;
     private Quaternion targetRotation;
-    private float forwardInput, sidewaysInput, turnInput, jumpInput;
+    private float forwardInput, sidewaysInput, turnInput, jumpInput, shootInput;
     public Transform spawnpoint;
 
     void Start(){
@@ -47,8 +57,9 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Awake()
     {
+        weaponStatus = WeaponStatus.Unarmed;
         velocity = Vector3.zero;
-        forwardInput = sidewaysInput = turnInput = jumpInput = 0;
+        forwardInput = sidewaysInput = turnInput = jumpInput = shootInput = 0;
         targetRotation = transform.rotation;
 
         playerRigidbody = gameObject.GetComponent<Rigidbody>();
@@ -66,6 +77,7 @@ public class PlayerBehaviour : MonoBehaviour
     {
         Run();
         Jump();
+        Shoot();
     }
 
     void GetInput()
@@ -78,6 +90,8 @@ public class PlayerBehaviour : MonoBehaviour
             turnInput = Input.GetAxis(inputSettings.TURN_AXIS);
         if(inputSettings.JUMP_AXIS.Length != 0)
             jumpInput = Input.GetAxisRaw(inputSettings.JUMP_AXIS);
+        if(inputSettings.SHOOT_AXIS.Length != 0)
+            jumpInput = Input.GetAxisRaw(inputSettings.SHOOT_AXIS);
     }
 
     void Run()
@@ -108,6 +122,15 @@ public class PlayerBehaviour : MonoBehaviour
     bool Grounded()
     {
         return Physics.Raycast(gameObject.transform.position, Vector3.down, moveSettings.distanceToGround, moveSettings.ground);
+    }
+
+    void Shoot()
+    {
+        if (shootInput != 0 && weaponStatus.Equals(WeaponStatus.Ready))
+        {
+            Vector3 position = new Vector3(transform.position.x, transform.position.y+ (0.6f * transform.localScale.y) + 5, transform.position.z);
+            Instantiate(dartPrefab, position, Quaternion.identity, this.transform); 
+        }
     }
     private void OnTriggerEnter(Collider other)
     {
