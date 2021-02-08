@@ -96,10 +96,9 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Run()
     {
+        velocity.z = forwardInput * moveSettings.runVelocity;
         velocity.x = sidewaysInput * moveSettings.runVelocity;
         velocity.y = playerRigidbody.velocity.y;
-        velocity.z = forwardInput * moveSettings.runVelocity;
-
         playerRigidbody.velocity = transform.TransformDirection(velocity);
 
     }
@@ -114,7 +113,7 @@ public class PlayerBehaviour : MonoBehaviour
     }
     void Jump()
     {
-        if ( jumpInput != 0 && Grounded())
+        if (jumpInput != 0 && Grounded())
         {
             playerRigidbody.velocity = new Vector3(playerRigidbody.velocity.x, moveSettings.jumpVelocity, playerRigidbody.velocity.z);
         }
