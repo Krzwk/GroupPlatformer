@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Enemy
   - DeathZone
+  - Boss
   layers:
   - Default
   - TransparentFX

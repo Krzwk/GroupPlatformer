@@ -1,27 +1,25 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Dart : MonoBehaviour
 {
     [SerializeField]
-    private float dartSpeed = 30;
+    private float dartSpeed;
 
     public GameObject explosionPrefab;
+    private float timeAlive;
     
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    void Awake(){
+        this.transform.Rotate(new Vector3(90, 0, 0), Space.Self);
+        timeAlive = 0;
     }
-
-    // Update is called once per frame
     void Update()
     {
         float amtToMove = dartSpeed * Time.deltaTime;
         transform.Translate(Vector3.up * amtToMove);
-        if(transform.position.y > 6.4f)
+        timeAlive += Time.deltaTime;
+        if(timeAlive > 5)
         {
             Destroy(this.gameObject);
         }
@@ -45,5 +43,7 @@ public class Dart : MonoBehaviour
             Instantiate(explosionPrefab, transform.position, transform.rotation);
             Destroy(gameObject);
         }
+        else if (!other.CompareTag("Player"))
+        Destroy(gameObject);
     }
 }
