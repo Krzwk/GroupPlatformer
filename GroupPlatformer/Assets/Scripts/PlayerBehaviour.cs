@@ -25,7 +25,7 @@ public class PlayerBehaviour : MonoBehaviour
         public string SIDEWAYS_AXIS = "Horizontal";
         public string JUMP_AXIS = "Jump";
         public string TURN_AXIS = "Mouse X";
-        public string SHOOT_AXIS = "FIRE1";
+        public string SHOOT_AXIS = "Fire1";
     }
     
     [SerializeField]
@@ -158,6 +158,7 @@ public class PlayerBehaviour : MonoBehaviour
         {
             OnDeath();
         }
+
     }
     public void setCheckpoint(Checkpoints checkpoint){
         spawnpoint = checkpoint.transform;
