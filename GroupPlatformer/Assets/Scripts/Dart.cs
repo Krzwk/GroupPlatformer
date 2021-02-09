@@ -44,6 +44,6 @@ public class Dart : MonoBehaviour
             Destroy(gameObject);
         }
         else if (!other.CompareTag("Player"))
-        Destroy(gameObject);
+        Destroy(this.gameObject);
     }
 }
