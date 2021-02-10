@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 [RequireComponent (typeof (Rigidbody))]
@@ -71,6 +72,8 @@ public class PlayerBehaviour : MonoBehaviour
 
         playerRigidbody = gameObject.GetComponent<Rigidbody>();
 
+        reloadBar.transform.parent.GetComponent<Image>().enabled = false;
+        reloadBar.GetComponent<Image>().enabled = false;
     }
 
 
@@ -199,7 +202,9 @@ public class PlayerBehaviour : MonoBehaviour
         playerRigidbody.velocity  = new Vector3(playerRigidbody.velocity.x, bumpSpeed, playerRigidbody.velocity.z);
     }
 
-    public void Arm(){
+    public void Arm(){       
+        reloadBar.transform.parent.GetComponent<Image>().enabled = true;
+        reloadBar.GetComponent<Image>().enabled = true;
         weaponStatus = WeaponStatus.Ready;
     }
 }
