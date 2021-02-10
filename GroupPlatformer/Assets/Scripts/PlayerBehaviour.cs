@@ -198,6 +198,10 @@ public class PlayerBehaviour : MonoBehaviour
     {
         playerRigidbody.velocity  = new Vector3(playerRigidbody.velocity.x, bumpSpeed, playerRigidbody.velocity.z);
     }
+
+    public void Arm(){
+        weaponStatus = WeaponStatus.Ready;
+    }
 }
 
 

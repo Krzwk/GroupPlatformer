@@ -12,11 +12,19 @@ public class AdvancedEnemy : MonoBehaviour
     private GameObject prey;
     private Rigidbody enemyRigidbody; 
 
-    public enum Behaviour{LineOfSight,Intercept,PatternMovement, ChasePatternMovement, Hide }
+    public enum Behaviour
+        {
+        LineOfSight,
+        Intercept,
+        PatternMovement, 
+        ChasePatternMovement, 
+        Hide 
+        }
     public Behaviour behaviour;
 
     private List<Waypoint> waypoints;
     private int currentWaypoint = 0;
+    [SerializeField]
     private float distanceThreshold;
 
 
@@ -30,7 +38,28 @@ public class AdvancedEnemy : MonoBehaviour
             ChaseLineOfSight(prey.transform.position, chaseSpeed);
             break;
             case Behaviour.Intercept:
-            intercept(prey.transform.position);
+            Intercept(prey.transform.position);
+            break;
+            case Behaviour.PatternMovement:
+            PatternMovement();
+            break;
+            case Behaviour.ChasePatternMovement:
+            if (Vector3.Distance(gameObject.transform.position, prey.transform.position) < distanceThreshold){
+                ChaseLineOfSight(prey.transform.position, chaseSpeed);
+            } 
+            else {
+                PatternMovement();
+            }
+            break;
+            case Behaviour.Hide:
+            if (PlayerVisible(prey.transform.position)){
+                ChaseLineOfSight(prey.transform.position, chaseSpeed);
+            }
+            else{
+                PatternMovement();
+            }
+            break;
+            default:
             break;
         }
     }
@@ -41,7 +70,7 @@ public class AdvancedEnemy : MonoBehaviour
         enemyRigidbody.velocity = new Vector3(direction.x * speed, enemyRigidbody.velocity.y, direction.z * speed);
     }
 
-    private void intercept(Vector3 targetPosition)
+    private void Intercept(Vector3 targetPosition)
     {
         Vector3 enemyPosition = transform.position;
         Vector3 velocityRelative, distance, predictedInterceptPoint;
@@ -58,11 +87,20 @@ public class AdvancedEnemy : MonoBehaviour
 
     }
 
-    private void patternMovement(){
+    private void PatternMovement(){
         ChaseLineOfSight(waypoints[currentWaypoint].transform.position, normalSpeed);
         if (Vector3.Distance(transform.position, waypoints[currentWaypoint].transform.position) < distanceThreshold){
             currentWaypoint = (currentWaypoint + 1) % waypoints.Count;
         }
 
+    }
+
+    private bool PlayerVisible(Vector3 targetPosition){
+        Vector3 directionToTarget = targetPosition - gameObject.transform.position;
+        directionToTarget.Normalize();
+
+        RaycastHit hit;
+        Physics.Raycast(gameObject.transform.position, directionToTarget, out hit);
+        return hit.collider.gameObject.CompareTag("Player");
     }
 }

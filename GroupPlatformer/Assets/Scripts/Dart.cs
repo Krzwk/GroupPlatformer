@@ -27,14 +27,14 @@ public class Dart : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Enemy"))
+        if(other.gameObject.CompareTag("Enemy"))
         {
             Enemy enemy = other.gameObject.GetComponent<Enemy>();
             enemy.OnDeath();
             Instantiate(explosionPrefab, transform.position, transform.rotation);
             Destroy(gameObject);
         }
-        else if (other.CompareTag("Boss"))
+        else if (other.gameObject.CompareTag("Boss"))
         {
             Boss boss = other.gameObject.GetComponent<Boss>();
             if(!boss.invincible){
@@ -43,7 +43,7 @@ public class Dart : MonoBehaviour
             Instantiate(explosionPrefab, transform.position, transform.rotation);
             Destroy(gameObject);
         }
-        else if (!other.CompareTag("Player"))
-        Destroy(this.gameObject);
+        else if (!other.gameObject.CompareTag("Player"))
+            Destroy(this.gameObject);
     }
 }
