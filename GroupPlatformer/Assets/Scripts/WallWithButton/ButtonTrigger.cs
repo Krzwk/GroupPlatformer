@@ -9,7 +9,7 @@ public class ButtonTrigger : MonoBehaviour
     private Transform cube;
     [SerializeField]
     private Transform spawnPointCube;
-
+    
     private void OnCollisionEnter(Collision collision)
     {
         if(collision.rigidbody.CompareTag("Button"))
@@ -21,4 +21,5 @@ public class ButtonTrigger : MonoBehaviour
 
         }
     }
+
 }
