@@ -5,12 +5,12 @@ using UnityEngine;
 public class AdvancedEnemy : MonoBehaviour
 {
     [SerializeField]
-    private float chaseSpeed;
+    protected float chaseSpeed;
     [SerializeField]
-    private float normalSpeed;
+    protected float normalSpeed;
     [SerializeField]
-    private GameObject prey;
-    private Rigidbody enemyRigidbody; 
+    protected GameObject prey;
+    protected Rigidbody enemyRigidbody; 
 
     public enum Behaviour
         {
@@ -20,15 +20,15 @@ public class AdvancedEnemy : MonoBehaviour
         ChasePatternMovement, 
         Hide 
         }
-    public Behaviour behaviour;
+    private Behaviour behaviour;
 
-    private List<Waypoint> waypoints;
-    private int currentWaypoint = 0;
+    protected List<Waypoint> waypoints;
+    protected int currentWaypoint = 0;
     [SerializeField]
-    private float distanceThreshold;
+    protected float distanceThreshold;
 
 
-    void Awake(){
+    protected void Awake(){
             enemyRigidbody = GetComponent<Rigidbody>();
         }
 
@@ -64,7 +64,7 @@ public class AdvancedEnemy : MonoBehaviour
         }
     }
 
-    private void ChaseLineOfSight(Vector3 targetPosition, float speed){
+    protected void ChaseLineOfSight(Vector3 targetPosition, float speed){
         Vector3 direction = targetPosition - transform.position;
         direction.Normalize();
         enemyRigidbody.velocity = new Vector3(direction.x * speed, enemyRigidbody.velocity.y, direction.z * speed);
@@ -87,7 +87,7 @@ public class AdvancedEnemy : MonoBehaviour
 
     }
 
-    private void PatternMovement(){
+    protected void PatternMovement(){
         ChaseLineOfSight(waypoints[currentWaypoint].transform.position, normalSpeed);
         if (Vector3.Distance(transform.position, waypoints[currentWaypoint].transform.position) < distanceThreshold){
             currentWaypoint = (currentWaypoint + 1) % waypoints.Count;
@@ -95,7 +95,7 @@ public class AdvancedEnemy : MonoBehaviour
 
     }
 
-    private bool PlayerVisible(Vector3 targetPosition){
+    protected bool PlayerVisible(Vector3 targetPosition){
         Vector3 directionToTarget = targetPosition - gameObject.transform.position;
         directionToTarget.Normalize();
 

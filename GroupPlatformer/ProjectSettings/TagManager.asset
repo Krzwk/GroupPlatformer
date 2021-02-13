@@ -9,6 +9,8 @@ TagManager:
   - Boss
   - Button
   - ActivatorCube
+  - Wall
+  - Breakable Wall
   layers:
   - Default
   - TransparentFX
