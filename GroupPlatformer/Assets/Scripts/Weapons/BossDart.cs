@@ -1,8 +1,8 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Dart : MonoBehaviour
+public class BossDart : MonoBehaviour
 {
     [SerializeField]
     private float dartSpeed;
@@ -17,28 +17,25 @@ public class Dart : MonoBehaviour
         float amtToMove = dartSpeed * Time.deltaTime;
         transform.Translate(Vector3.up * amtToMove);
         Destroy(this.gameObject, 5f);
-        
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.CompareTag("Enemy"))
+        if(other.gameObject.CompareTag("Player"))
+        {
+            PlayerBehaviour player = other.gameObject.GetComponent<PlayerBehaviour>();
+            player.OnDeath();
+            Instantiate(explosionPrefab, transform.position, transform.rotation);
+            Destroy(gameObject);
+        }
+        else if (other.gameObject.CompareTag("Enemy"))
         {
             AdvancedEnemy enemy = other.gameObject.GetComponent<AdvancedEnemy>();
             enemy.OnDeath();
             Instantiate(explosionPrefab, transform.position, transform.rotation);
             Destroy(gameObject);
         }
-        else if (other.gameObject.CompareTag("Boss"))
-        {
-            Boss boss = other.gameObject.GetComponent<Boss>();
-            if(!boss.invincible){
-                boss.OnHit(10);
-                }
-            Instantiate(explosionPrefab, transform.position, transform.rotation);
-            Destroy(gameObject);
-        }
-        else if (!other.gameObject.CompareTag("Player"))
+        else if (!other.gameObject.CompareTag("Boss"))
             Destroy(this.gameObject);
     }
 }

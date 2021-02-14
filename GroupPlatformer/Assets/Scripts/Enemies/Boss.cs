@@ -9,9 +9,10 @@ public class Boss : AdvancedEnemy
 
     private float baseNormalSpeed;
     private float timeSincePlayerSeen;
-    private int maxHealth;
     [SerializeField]
-    private int health;
+    private float maxHealth;
+    [SerializeField]
+    private float health;
     public bool invincible;
     [SerializeField]
     private float stunTime;
@@ -27,6 +28,7 @@ public class Boss : AdvancedEnemy
 
 
     }
+    [SerializeField]
     private Behaviour bossBehaviour;
     private bool spawning;
     private bool charging;
@@ -46,48 +48,54 @@ public class Boss : AdvancedEnemy
     [SerializeField]
     private float rotationSpeed;
 
-    public Behaviour Behaviour1 { get => bossBehaviour; set => bossBehaviour = value; }
 
     new void Awake(){
         base.Awake();
         liftoffHeight += this.transform.position.y;
-        invincible = false;
+        invincible = spawning = false;
         healthBar.transform.parent.GetComponent<Image>().enabled = true;
         healthBar.GetComponent<Image>().enabled = true;
+        timeSincePlayerSeen = 0;
+        bossBehaviour = Behaviour.ChargeAndDestroy;
+    }
+
+    void Start(){
+        maxHealth = health;    
         baseNormalSpeed = normalSpeed;
         baseWeaponCooldown = weaponCooldown;
-        timeSincePlayerSeen = 0;
     }
     private void FixedUpdate(){
-        switch(Behaviour1) {
+        switch(bossBehaviour) {
             case Behaviour.ChargeAndDestroy : 
-                if (normalSpeed == baseNormalSpeed){
+                if (!PlayerVisible(prey.transform.position)){
+                    normalSpeed = baseNormalSpeed;
                     PatternMovement();
                 }
-                else if (normalSpeed < baseNormalSpeed){
-                    normalSpeed = baseNormalSpeed;
-                }
                 else {
+                    charging = true;
                     Charge(prey.transform.position);
                 }
+
                 break;
             case Behaviour.PatrolAndShoot : 
 
                     if (PlayerVisible(prey.transform.position)){
                         
                         timeSincePlayerSeen = 0;
-                        if (Vector3.Angle(prey.transform.position, transform.position - prey.transform.position) < 5){
+                        weaponCooldown -= Time.deltaTime;
+                        if (Vector3.Dot(transform.forward, (prey.transform.position - transform.position).normalized) > 0.99f){
 
                             if(weaponCooldown <= 0){
-                                Instantiate(dartPrefab, new Vector3(transform.position.x, transform.position.y + this.GetComponent<Collider>().bounds.extents.y, transform.position.z), Quaternion.identity);
+                                
+                                Instantiate(dartPrefab, this.transform.position + this.gameObject.GetComponent<Collider>().bounds.extents.x * Vector3.forward, this.transform.rotation); 
                                 weaponCooldown = baseWeaponCooldown;
                             }
-                            else{
-                                weaponCooldown -= Time.deltaTime;
-                                Vector3 target = prey.transform.position - transform.position;
-                                transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, target, rotationSpeed*Time.deltaTime, 0.0f));
 
-                            }
+                        }
+                        
+                        else{
+                                Vector3 target = prey.transform.position - transform.position;
+                                transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, target, rotationSpeed*Time.deltaTime, 10f));
 
                         }
                     }
@@ -119,10 +127,10 @@ public class Boss : AdvancedEnemy
 
     public void OnHit(int hpLoss){
         health -= hpLoss;
-        if (health < 2*maxHealth / 3){
+        if (health < 2*maxHealth / 3 && bossBehaviour != Behaviour.SearchAndSpawn){
             StartCoroutine(SwitchPhase(Behaviour.SearchAndSpawn));
         }
-        else if (health < maxHealth / 3){
+        else if (health < maxHealth / 3 && bossBehaviour != Behaviour.PatrolAndShoot){
             StartCoroutine(SwitchPhase(Behaviour.PatrolAndShoot));
         }
         if (health <= 0){
@@ -137,21 +145,21 @@ public class Boss : AdvancedEnemy
         timeSincePlayerSeen = 0;
         Color newColor;
         float colorChange = 0;
-        Behaviour1 = Behaviour.Stunned;
+        bossBehaviour = Behaviour.Stunned;
         while (colorChange < 1){
             colorChange += Time.deltaTime/2;
             if (phase == Behaviour.SearchAndSpawn)
                 newColor = Color.Lerp(Color.blue, Color.red, colorChange);
             else 
                 newColor = Color.Lerp(Color.red, Color.black, colorChange);
-            this.GetComponent<Material>().color = newColor;
+            this.gameObject.GetComponent<Renderer>().material.color = newColor;
             yield return null;
         }
-        Behaviour1 = phase;
+        bossBehaviour = phase;
 
     }
 
-    private void OnDeath(){
+    new private void OnDeath(){
         Instantiate(explosionPrefab, transform.position, transform.rotation);
         Destroy(gameObject);
     }
@@ -177,19 +185,18 @@ public class Boss : AdvancedEnemy
 
         predictedInterceptPoint = targetPosition + (timeToClose* prey.GetComponent<Rigidbody>().velocity);
         if (PlayerVisible(prey.transform.position)) 
-            normalSpeed += chargeSpeedUp; 
-        else 
-            normalSpeed -= chargeSpeedUp;
+            normalSpeed += chargeSpeedUp*Time.deltaTime; 
+        else if (normalSpeed > baseNormalSpeed)
+            normalSpeed -= chargeSpeedUp*Time.deltaTime;
         ChaseLineOfSight(predictedInterceptPoint, normalSpeed);
     }
 
     private void OnCollisionEnter(Collision collision){
-        if (charging){
+        if (charging && normalSpeed > baseNormalSpeed * 1.2f){
             if (collision.gameObject.CompareTag("Breakable Wall")){
                 charging = false;
                 OnHit(5);
-                gameObject.GetComponent<Collider>().enabled = false;
-                Destroy(gameObject, 1f);
+                DestroyWall(collision.gameObject);
                 StartCoroutine(Concussion());
             }
             if (collision.gameObject.CompareTag("Wall")){
@@ -197,28 +204,47 @@ public class Boss : AdvancedEnemy
                 OnHit(5);
                 StartCoroutine(Concussion());
             }
-
+        charging = false;
+        normalSpeed = baseNormalSpeed;
         }
+    }
+
+    private void DestroyWall(GameObject wall){
+        Rigidbody dropper = wall.AddComponent<Rigidbody>();
+        dropper.useGravity = true;
+        wall.GetComponent<Collider>().enabled = false;
+        Destroy(wall, 1f);
+
     }
 
     private IEnumerator Spawn(){
         spawning = true;
-        this.GetComponent<Rigidbody>().useGravity = false;
+        Rigidbody rigidbody = this.GetComponent<Rigidbody>();
+//        rigidbody.constraints = RigidbodyConstraints.FreezePositionX;
+//        rigidbody.constraints = RigidbodyConstraints.FreezePositionZ;
+        rigidbody.useGravity = false;
+        rigidbody.isKinematic = true;
         while(this.transform.position.y < liftoffHeight){
                 this.transform.position += Vector3.up*Time.deltaTime*liftoffSpeed;
                 yield return null;
             }
         float spawned = 0;
         while(spawned < 3){
-            Instantiate(enemyPrefab, this.transform.position - Vector3.down * 2, Quaternion.identity);
+            GameObject minion = Instantiate(enemyPrefab, this.transform.position + this.GetComponent<Collider>().bounds.extents.y * Vector3.down, Quaternion.identity);
+            AdvancedEnemy spawnedMinion = minion.GetComponent<AdvancedEnemy>();
+            spawnedMinion.prey = this.prey;
             health -= 1;
             UpdateHealthbar();
             spawned++;
             yield return new WaitForSeconds(2);
         }
-        this.GetComponent<Rigidbody>().useGravity = true;
+        rigidbody.useGravity = true;
+        rigidbody.isKinematic = false;
         yield return new WaitForSeconds(1);
         spawning = false;
+//        rigidbody.constraints = RigidbodyConstraints.None;
+//        rigidbody.constraints = RigidbodyConstraints.FreezeRotationX;
+//        rigidbody.constraints = RigidbodyConstraints.FreezeRotationZ;
 
 
     }
@@ -226,15 +252,15 @@ public class Boss : AdvancedEnemy
 
 
     private IEnumerator Concussion(){
-        Behaviour previousBehaviour = Behaviour1;
-        Behaviour1 = Behaviour.Stunned;
+        Behaviour previousBehaviour = bossBehaviour;
+        bossBehaviour = Behaviour.Stunned;
         yield return new WaitForSeconds(stunTime);
-        Behaviour1 = previousBehaviour; 
+        bossBehaviour = previousBehaviour; 
     }
 
     private IEnumerator ShootBlindly(){
         for (int dartsFired = 0; dartsFired < 36; dartsFired++){
-                Instantiate(dartPrefab, new Vector3(transform.position.x, transform.position.y + this.GetComponent<Collider>().bounds.extents.y, transform.position.z), Quaternion.identity);
+                Instantiate(dartPrefab, this.transform.position + this.gameObject.GetComponent<Collider>().bounds.extents.x * Vector3.forward, this.transform.rotation); 
                 for (float rotationAroundSelf = 0; rotationAroundSelf < 10; rotationAroundSelf += Time.deltaTime*rotationSpeed){
                     this.transform.Rotate(0, Time.deltaTime*rotationSpeed, 0, Space.Self);
                     yield return null;

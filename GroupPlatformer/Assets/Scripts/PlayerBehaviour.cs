@@ -138,7 +138,7 @@ public class PlayerBehaviour : MonoBehaviour
         if (shootInput != 0 && weaponStatus.Equals(WeaponStatus.Ready))
         {
             Vector3 position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-            Instantiate(dartPrefab, position, this.transform.rotation); 
+            Instantiate(dartPrefab, position + this.gameObject.GetComponent<Collider>().bounds.extents.x * Vector3.forward, this.transform.rotation); 
             StartCoroutine(Reload());
         }
     }
@@ -167,7 +167,7 @@ public class PlayerBehaviour : MonoBehaviour
         spawnpoint = checkpoint.transform;
         Destroy(checkpoint.GetComponent<BoxCollider>());
     }
-    void OnDeath()
+    public void OnDeath()
     {
         GameData.Instance.Lives -= 1;
         Spawn();
@@ -177,15 +177,10 @@ public class PlayerBehaviour : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+            AdvancedEnemy enemy = collision.gameObject.GetComponent<AdvancedEnemy>();
             Collider enemyCollider = collision.gameObject.GetComponent<Collider>();
             Collider playerCollider = gameObject.GetComponent<Collider>();
-
-            if (enemy.invincible)
-            {
-                OnDeath();
-            }
-            else if (playerCollider.bounds.center.y - playerCollider.bounds.extents.y > enemyCollider.bounds.center.y + 0.5f* enemyCollider.bounds.extents.y)
+            if (playerCollider.bounds.center.y - playerCollider.bounds.extents.y > enemyCollider.bounds.center.y + 0.5f* enemyCollider.bounds.extents.y)
             {
                 GameData.Instance.Score += 10;
                 JumpedOnEnemy(enemy.bumpSpeed);
@@ -195,6 +190,10 @@ public class PlayerBehaviour : MonoBehaviour
             {
                 OnDeath();
             }
+        }
+        else if (collision.gameObject.CompareTag("Boss")){
+            Boss boss = collision.gameObject.GetComponent<Boss>();
+            OnDeath();
         }
     }
     void JumpedOnEnemy(float bumpSpeed)

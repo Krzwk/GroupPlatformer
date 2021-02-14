@@ -11,6 +11,11 @@ TagManager:
   - ActivatorCube
   - Wall
   - Breakable Wall
+  - OrangeCube
+  - YellowCube
+  - BlueCube
+  - BlackCube
+  - GreenCube
   layers:
   - Default
   - TransparentFX

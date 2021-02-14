@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class AdvancedEnemy : MonoBehaviour
 {
+    public float bumpSpeed;
     [SerializeField]
     protected float chaseSpeed;
     [SerializeField]
     protected float normalSpeed;
-    [SerializeField]
-    protected GameObject prey;
+    public GameObject prey;
     protected Rigidbody enemyRigidbody; 
 
     public enum Behaviour
@@ -21,7 +21,7 @@ public class AdvancedEnemy : MonoBehaviour
         Hide 
         }
     private Behaviour behaviour;
-
+    [SerializeField]
     protected List<Waypoint> waypoints;
     protected int currentWaypoint = 0;
     [SerializeField]
@@ -102,5 +102,9 @@ public class AdvancedEnemy : MonoBehaviour
         RaycastHit hit;
         Physics.Raycast(gameObject.transform.position, directionToTarget, out hit);
         return hit.collider.gameObject.CompareTag("Player");
+    }
+    public void OnDeath(){
+        gameObject.GetComponent<Collider>().enabled = false;
+        Destroy(gameObject, 1f);
     }
 }
