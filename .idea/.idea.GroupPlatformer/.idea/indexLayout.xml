@@ -19,6 +19,7 @@
       <Path>.idea</Path>
       <Path>.vs</Path>
       <Path>.vscode</Path>
+      <Path>GroupPlatformer</Path>
       <Path>Library</Path>
       <Path>Logs</Path>
       <Path>Temp</Path>
